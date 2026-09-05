@@ -1,0 +1,5 @@
+transaction_id,date,amount,currency,merchant,reference,description
+HITL-ORPHAN-1,2026-04-01,99999.00,INR,Totally Unknown Vendor,NO-ERP-MATCH-1,Unidentified wire — must escalate
+HITL-ORPHAN-2,2026-04-02,77777.00,INR,Mystery Payer XYZ,NO-ERP-MATCH-2,Suspense credit — must escalate
+HITL-AMBIG-1,2026-03-01,5000.00,INR,Amazonish Corp,WRONG-REF-AMAZ,Near-duplicate Amazon amount but wrong merchant/ref — review band
+HITL-AMBIG-2,2026-03-02,2600.00,INR,Google Clouding,REF-GOOG-WRONG,Close to Google Cloud amount — ambiguous

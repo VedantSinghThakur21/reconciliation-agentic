@@ -6,7 +6,8 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/api': 'http://127.0.0.1:8002',
+      // Live demo API: scripts/run_api.py defaults to 8003 (override with RECONQ_API_PORT).
+      '/api': 'http://127.0.0.1:8003',
     },
   },
 })

@@ -35,7 +35,12 @@ from src.pipeline import run_pipeline  # noqa: E402
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run reconq-core AR cash-application pipeline")
     parser.add_argument("--invoices", required=True, help="Path to invoice CSV")
-    parser.add_argument("--payments", required=True, help="Path to payment CSV")
+    parser.add_argument("--payments", default=None, help="Path to payment CSV (classic path)")
+    parser.add_argument(
+        "--payments-pdf",
+        default=None,
+        help="Path to text-layer bank statement PDF (alternative to --payments; no OCR)",
+    )
     parser.add_argument("--ai", action="store_true", help="Send leftovers through LangGraph AI matcher")
     parser.add_argument(
         "--use-crewai",
@@ -57,6 +62,11 @@ def main() -> int:
     parser.add_argument("-v", "--verbose", action="store_true")
     args = parser.parse_args()
 
+    if not args.payments and not args.payments_pdf:
+        parser.error("Provide --payments CSV and/or use --payments-pdf for bank statement PDF")
+    if args.payments and args.payments_pdf:
+        parser.error("Use either --payments or --payments-pdf, not both")
+
     logging.basicConfig(
         level=logging.DEBUG if args.verbose else logging.INFO,
         format="%(levelname)s %(name)s: %(message)s",
@@ -65,6 +75,7 @@ def main() -> int:
     result = run_pipeline(
         args.invoices,
         args.payments,
+        payment_pdf=args.payments_pdf,
         use_ai_graph=args.ai,
         use_crewai=args.use_crewai,
         crewai_bank_csv=args.crewai_bank_csv,

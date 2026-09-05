@@ -61,8 +61,9 @@ class PipelineResult:
 
 def run_pipeline(
     invoice_csv: str | Path,
-    payment_csv: str | Path,
+    payment_csv: str | Path | None = None,
     *,
+    payment_pdf: str | Path | None = None,
     config: dict[str, Any] | None = None,
     memory_rules: list[dict] | None = None,
     use_ai_graph: bool = False,
@@ -73,17 +74,25 @@ def run_pipeline(
     crewai_max_wait_sec: float | None = None,
 ) -> PipelineResult:
     """
-    Run the core reconciliation engine on two CSV files.
+    Run the core reconciliation engine.
 
-    By default uses the deterministic StrictMatcher only (no LangGraph / LLM / CrewAI).
-    Set use_ai_graph=True to send leftovers through the adapted LangGraph nodes.
-    Set use_crewai=True (and CREWAI_API_URL + CREWAI_BEARER_TOKEN) for optional AMP
-    leftover enrichment into pending_review. CrewAI is fail-open: AMP errors leave
-    StrictMatcher results intact and fall through to --ai or plain unmatched.
+    Payment source: classic CSV (`payment_csv`) OR text-layer bank PDF (`payment_pdf`).
+    CSV parsing is unchanged; PDF is an additional ingestion path into the same matcher.
     """
     cfg = {**DEFAULT_CONFIG, **(config or {})}
     invoices_list = parse_invoice_csv(invoice_csv)
-    payments = parse_payment_csv(payment_csv)
+    if payment_pdf and payment_csv:
+        raise ValueError("Pass either payment_csv or payment_pdf, not both")
+    if payment_pdf:
+        from src.ingestion.pdf_loader import parse_payment_pdf
+
+        payments = parse_payment_pdf(payment_pdf)
+        payment_source = str(payment_pdf)
+    elif payment_csv:
+        payments = parse_payment_csv(payment_csv)
+        payment_source = str(payment_csv)
+    else:
+        raise ValueError("Provide payment_csv or payment_pdf")
     invoices = {inv["id"]: deepcopy(inv) for inv in invoices_list}
 
     matcher = StrictMatcher(cfg, memory_rules or [])
@@ -112,7 +121,7 @@ def run_pipeline(
             )
             suggestions = enrich_leftovers_with_crewai(
                 leftover,
-                bank_csv_path=str(crewai_bank_csv or payment_csv),
+                bank_csv_path=str(crewai_bank_csv or payment_source),
                 payment_processor_csv_path=str(crewai_processor_csv or ""),
                 ground_truth_csv_path=str(crewai_ground_truth_csv or ""),
                 max_wait_sec=wait_sec,

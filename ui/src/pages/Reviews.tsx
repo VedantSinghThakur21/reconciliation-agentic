@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
 import { useRun } from '../state/RunContext'
 
+const ACTIONS = ['APPROVE', 'REJECT', 'RESOLVE', 'ESCALATE', 'WRITE_OFF'] as const
+
 export default function ReviewsPage() {
   const { exceptions, resolve, runId } = useRun()
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -21,7 +23,7 @@ export default function ReviewsPage() {
           <h1>Reviews</h1>
           <p>
             Honest exception queue — payments the agent could not safely auto-close.
-            Approve or reject to write a human decision into the audit trail.
+            AI may recommend an action; human_decision stays null until you click.
           </p>
         </div>
       </div>
@@ -88,21 +90,29 @@ export default function ReviewsPage() {
                 </span>{' '}
                 {ex.reason} · {(ex.confidence * 100).toFixed(0)}% confidence · {ex.id}
               </p>
+              <p className="card-sub">
+                human_decision:{' '}
+                {ex.status === 'pending' ? (
+                  <span className="badge badge-warn">null</span>
+                ) : (
+                  <span className="badge badge-ok">{ex.status}</span>
+                )}
+              </p>
               {selected?.id === ex.id && <p>{ex.reasoning}</p>}
               <div className="row-actions">
                 <button className="btn btn-secondary btn-sm" onClick={() => setSelectedId(ex.id)}>
                   View evidence
                 </button>
-                {ex.status === 'pending' && (
-                  <>
-                    <button className="btn btn-ok btn-sm" onClick={() => resolve(ex.id, 'confirmed')}>
-                      Approve
+                {ex.status === 'pending' &&
+                  ACTIONS.map((a) => (
+                    <button
+                      key={a}
+                      className={`btn btn-sm ${a === 'APPROVE' ? 'btn-ok' : a === 'REJECT' ? 'btn-danger' : 'btn-secondary'}`}
+                      onClick={() => resolve(ex.id, a)}
+                    >
+                      {a}
                     </button>
-                    <button className="btn btn-danger btn-sm" onClick={() => resolve(ex.id, 'rejected')}>
-                      Reject
-                    </button>
-                  </>
-                )}
+                  ))}
               </div>
             </div>
           ))

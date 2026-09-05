@@ -3,6 +3,7 @@ import { useRun } from '../state/RunContext'
 
 const NAV_MAIN = [
   { to: '/', label: 'Dashboard', end: true, ico: '◈' },
+  { to: '/history', label: 'History', ico: '◷' },
   { to: '/invoices', label: 'Invoices', ico: '▤' },
   { to: '/payments', label: 'Payments', ico: '⇄' },
   { to: '/matches', label: 'Matches', ico: '✓' },
@@ -17,7 +18,17 @@ const NAV_INSIGHTS = [
 ]
 
 export default function Layout() {
-  const { error, running, runId, runRecon, loadLatest, useAi, setUseAi, exceptions } = useRun()
+  const {
+    error,
+    running,
+    runId,
+    runRecon,
+    loadLatest,
+    useAi,
+    setUseAi,
+    exceptions,
+    bankPdfPath,
+  } = useRun()
   const pending = exceptions.filter((e) => e.status === 'pending').length
 
   return (
@@ -79,6 +90,14 @@ export default function Layout() {
             )}
           </div>
           <div className="topbar-actions">
+            {bankPdfPath ? (
+              <span
+                className="badge badge-ok"
+                title={bankPdfPath}
+              >
+                PDF: {/^https?:\/\//i.test(bankPdfPath) ? 'public URL' : bankPdfPath}
+              </span>
+            ) : null}
             <label className="toggle">
               <input
                 type="checkbox"

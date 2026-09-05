@@ -1,0 +1,113 @@
+[
+  {
+    "pdf": "statement_a_tabular.pdf",
+    "expected_credits": [
+      {
+        "file": "statement_a_tabular.pdf",
+        "id": "TXN-1001",
+        "date": "2026-04-01",
+        "senderName": "Acme Corp",
+        "amount": 10000.0,
+        "reference": "REF-ACME-001"
+      },
+      {
+        "file": "statement_a_tabular.pdf",
+        "id": "TXN-1002",
+        "date": "2026-04-02",
+        "senderName": "Test Vendor Ltd",
+        "amount": 15000.0,
+        "reference": "REF-TVL-002"
+      },
+      {
+        "file": "statement_a_tabular.pdf",
+        "id": "TXN-1003",
+        "date": "2026-04-03",
+        "senderName": "Globex Inc",
+        "amount": 20000.0,
+        "reference": "NEFT-99999"
+      },
+      {
+        "file": "statement_a_tabular.pdf",
+        "id": "TXN-1004",
+        "date": "2026-04-04",
+        "senderName": "Unknown Payer",
+        "amount": 4500.0,
+        "reference": "UPI-555"
+      },
+      {
+        "file": "statement_a_tabular.pdf",
+        "id": "TXN-1005",
+        "date": "2026-04-05",
+        "senderName": "INITECH SOL",
+        "amount": 8500.0,
+        "reference": "REF-INI-004"
+      }
+    ]
+  },
+  {
+    "pdf": "statement_b_lines.pdf",
+    "expected_credits": [
+      {
+        "file": "statement_b_lines.pdf",
+        "id": "BNK-2001",
+        "date": "2026-03-01",
+        "senderName": "Acme Corp",
+        "amount": 12500.5,
+        "reference": "REF-ACME-2001"
+      },
+      {
+        "file": "statement_b_lines.pdf",
+        "id": "BNK-2002",
+        "date": "2026-03-02",
+        "senderName": "Globex Inc",
+        "amount": 9800.0,
+        "reference": "NEFT-2002"
+      },
+      {
+        "file": "statement_b_lines.pdf",
+        "id": "BNK-2003",
+        "date": "2026-03-03",
+        "senderName": "Initech",
+        "amount": 3200.75,
+        "reference": "UPI-2003"
+      },
+      {
+        "file": "statement_b_lines.pdf",
+        "id": "BNK-2004",
+        "date": "2026-03-04",
+        "senderName": "Umbrella LLC",
+        "amount": 1500.0,
+        "reference": "REF-UMB-2004"
+      }
+    ]
+  },
+  {
+    "pdf": "statement_c_ddmmyyyy.pdf",
+    "expected_credits": [
+      {
+        "file": "statement_c_ddmmyyyy.pdf",
+        "id": "PDF-LN-1",
+        "date": "2026-02-10",
+        "senderName": "Acme Corp",
+        "amount": 7777.0,
+        "reference": "REF-ACME-777"
+      },
+      {
+        "file": "statement_c_ddmmyyyy.pdf",
+        "id": "PDF-LN-2",
+        "date": "2026-02-11",
+        "senderName": "Test Vendor Ltd",
+        "amount": 3333.33,
+        "reference": "REF-TVL-333"
+      },
+      {
+        "file": "statement_c_ddmmyyyy.pdf",
+        "id": "PDF-LN-3",
+        "date": "2026-02-12",
+        "senderName": "Globex Inc",
+        "amount": 1010.1,
+        "reference": "NEFT-1010"
+      }
+    ]
+  }
+]
