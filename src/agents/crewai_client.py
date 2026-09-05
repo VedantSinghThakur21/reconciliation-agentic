@@ -236,6 +236,24 @@ class CrewAIClient:
             print(line, flush=True)
             logger.info(line)
 
+            # Best-effort AG-UI progress bus (never affect poll correctness)
+            try:
+                from src.agui import bus as agui_bus
+
+                agui_bus.publish(
+                    kickoff_id,
+                    {
+                        "type": "STEP_STARTED" if attempt == 1 else "TEXT_MESSAGE_CONTENT",
+                        "stepName": "crewai_amp_poll",
+                        "delta": f"poll#{attempt} state={state_field} status={status_field}\n",
+                        "state": state_field,
+                        "status": status_field,
+                        "elapsed_sec": elapsed,
+                    },
+                )
+            except Exception:  # noqa: BLE001
+                pass
+
             kind = _terminal_kind(last)
             if kind == "success":
                 done = (

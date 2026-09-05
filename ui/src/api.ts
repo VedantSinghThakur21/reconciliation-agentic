@@ -120,7 +120,7 @@ export type RunPayload = {
 export const api = {
   health: () => request<{ status: string }>('/api/health'),
   sources: () => request<{ sources: Source[] }>('/api/sources'),
-  reconcile: (_useAi = true) =>
+  reconcile: (opts?: { bank_pdf_path?: string | null; useAi?: boolean }) =>
     request<{
       run_id: string
       summary: Record<string, unknown>
@@ -134,14 +134,43 @@ export const api = {
       kickoff_id?: string
       engine?: string
       amp_result?: Record<string, unknown>
+      inputs_sent?: Record<string, unknown>
     }>('/api/reconcile', {
       method: 'POST',
       body: JSON.stringify({
-        user_request: 'Run AR reconciliation on demo feeds',
+        user_request: opts?.bank_pdf_path
+          ? /^https?:\/\//i.test(opts.bank_pdf_path)
+            ? `Run AR reconciliation. Bank PDF is at ${opts.bank_pdf_path}. Use payment_processor.csv and ground_truth.csv.`
+            : 'Run AR reconciliation including uploaded bank statement PDF (AMP OCR if available)'
+          : 'Run AR reconciliation on demo feeds',
         ar_ap_mode: 'AR',
         wait: false,
+        bank_pdf_path: opts?.bank_pdf_path || undefined,
       }),
     }),
+  uploadBankPdf: async (file: File) => {
+    const form = new FormData()
+    form.append('file', file)
+    const res = await fetch(`${BASE}/api/uploads/bank-pdf`, { method: 'POST', body: form })
+    if (!res.ok) throw new Error(await res.text())
+    return res.json() as Promise<{
+      filename: string
+      path: string
+      bank_pdf_path: string
+      public_url?: string | null
+      public_error?: string | null
+      bytes: number
+      preview: {
+        local_text_extract: string | null
+        records: number
+        error?: string | null
+        note?: string
+      }
+      ocr: string
+    }>
+  },
+  listBankPdfs: () =>
+    request<{ files: Array<{ filename: string; path: string; bytes: number }> }>('/api/uploads/bank-pdf'),
   ampStatus: (kickoffId: string) =>
     request<{
       state?: string
@@ -149,16 +178,55 @@ export const api = {
       result?: unknown
       result_json?: unknown
     }>(`/api/amp/status/${kickoffId}`),
-  journals: () =>
-    request<{ journals: Array<Record<string, unknown>>; writebacks: Array<Record<string, unknown>> }>(
-      '/api/journals',
+  ampFinalize: (kickoffId: string, opts?: { run_id?: string }) =>
+    request<RunPayload & { status?: string; metrics?: Metrics }>(`/api/amp/finalize/${kickoffId}`, {
+      method: 'POST',
+      body: JSON.stringify({ run_id: opts?.run_id }),
+    }),
+  journals: (runId?: string | null) =>
+    request<{
+      journals: Array<Record<string, unknown>>
+      writebacks: Array<Record<string, unknown>>
+      run_id?: string
+    }>(runId ? `/api/journals?run_id=${encodeURIComponent(runId)}` : '/api/journals'),
+  report: (runId?: string | null) =>
+    request<{ run_id: string; report: string; evaluation?: Record<string, unknown> }>(
+      runId ? `/api/report?run_id=${encodeURIComponent(runId)}` : '/api/report',
     ),
-  report: () => request<{ run_id: string; report: string }>('/api/report'),
-  candidates: () => request<{ candidates: Array<Record<string, unknown>> }>('/api/candidates'),
+  candidates: (runId?: string | null) =>
+    request<{ candidates: Array<Record<string, unknown>> }>(
+      runId ? `/api/candidates?run_id=${encodeURIComponent(runId)}` : '/api/candidates',
+    ),
+  listRuns: (limit = 50) =>
+    request<{
+      runs: Array<{
+        id: string
+        user_request?: string
+        ar_ap_mode?: string
+        status: string
+        started_at: string
+        finished_at?: string | null
+        bank_pdf_path?: string | null
+        summary_preview?: {
+          match_rate?: number | null
+          accuracy?: number | null
+          f1?: number | null
+          exception_count?: number | null
+          auto_match_count?: number | null
+        }
+      }>
+      active_run_id: string | null
+    }>(`/api/runs?limit=${limit}`),
   latest: () => request<RunPayload>('/api/runs/latest'),
   run: (id: string) => request<RunPayload>(`/api/runs/${id}`),
   resolve: (id: string, decision: string, note?: string) =>
-    request<ExceptionItem>(`/api/exceptions/${id}/resolve`, {
+    request<
+      ExceptionItem & {
+        human_decision?: string
+        workspace?: Record<string, unknown>
+        run_id?: string
+      }
+    >(`/api/exceptions/${id}/resolve`, {
       method: 'POST',
       body: JSON.stringify({ decision, decided_by: 'analyst', note }),
     }),
@@ -166,6 +234,17 @@ export const api = {
     request<{ answer: string; run_id: string; question: string }>('/api/qa', {
       method: 'POST',
       body: JSON.stringify({ question, run_id: runId }),
+    }),
+  classify: (text: string) =>
+    request<{
+      intent: string
+      txn_ref: string | null
+      source?: string
+      llm_intent?: string
+      text: string
+    }>('/api/assistant/classify', {
+      method: 'POST',
+      body: JSON.stringify({ text }),
     }),
   audit: (runId?: string) =>
     request<{ events: Array<Record<string, unknown>> }>(

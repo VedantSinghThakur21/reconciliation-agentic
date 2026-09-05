@@ -19,6 +19,7 @@ data/**/*production*
 *.sqlite
 data/finance_controller.db
 data/reconq.db
+data/uploads/
 
 # Real bank statements / customer PDFs
 *.pdf

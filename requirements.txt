@@ -1,7 +1,10 @@
-langgraph>=0.2.0
+﻿langgraph>=0.2.0
 pytest>=8.0.0
 fastapi>=0.115.0
 uvicorn[standard]>=0.30.0
 pydantic>=2.0.0
 crewai>=0.80.0
+ag-ui-protocol>=0.1.20
 rapidfuzz>=3.0.0
+pdfplumber>=0.11.0
+reportlab>=4.0.0

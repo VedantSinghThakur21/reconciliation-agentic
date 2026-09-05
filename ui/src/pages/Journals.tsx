@@ -14,7 +14,7 @@ export default function JournalsPage() {
       setWritebacks([])
       return
     }
-    api.journals().then((r) => {
+    api.journals(runId).then((r) => {
       setJournals(r.journals || [])
       setWritebacks(r.writebacks || [])
     }).catch(() => {

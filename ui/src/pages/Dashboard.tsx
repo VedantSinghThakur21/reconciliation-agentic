@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Bar,
@@ -9,14 +9,47 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import DashboardQuery from '../components/DashboardQuery'
 import { money, pct, STAGE_ORDER } from '../lib/format'
 import { useRun } from '../state/RunContext'
 
 export default function DashboardPage() {
-  const { metrics, stages, running, exceptions, cash, invoices, payments, runRecon, runId } = useRun()
-  const pending = exceptions.filter((e) => e.status === 'pending').length
+  const {
+    metrics,
+    stages,
+    running,
+    exceptions,
+    cash,
+    invoices,
+    payments,
+    runRecon,
+    runId,
+    bankPdfPath,
+    uploadBankPdf,
+    setError,
+  } = useRun()
+  const pdfInputRef = useRef<HTMLInputElement>(null)
+  const [uploadingPdf, setUploadingPdf] = useState(false)
+  const [workspaceActive, setWorkspaceActive] = useState(false)
+  const pending = Math.max(
+    exceptions.filter((e) => e.status === 'pending').length,
+    typeof metrics?.pending_review === 'number' ? metrics.pending_review : 0,
+  )
   const throughput = metrics?.details?.throughput_per_sec
   const duration = metrics?.details?.duration_sec
+
+  async function onPdfPick(file: File | null) {
+    if (!file) return
+    setUploadingPdf(true)
+    try {
+      await uploadBankPdf(file)
+    } catch (e) {
+      setError(String(e))
+    } finally {
+      setUploadingPdf(false)
+      if (pdfInputRef.current) pdfInputRef.current.value = ''
+    }
+  }
 
   const stageMap = useMemo(() => {
     const map: Record<string, string> = {}
@@ -27,12 +60,14 @@ export default function DashboardPage() {
   const chartData = useMemo(() => {
     if (!metrics) return []
     return [
-      { name: 'Accuracy', value: (metrics.accuracy ?? 0) * 100 },
-      { name: 'Precision', value: (metrics.precision ?? 0) * 100 },
-      { name: 'Recall', value: (metrics.recall ?? 0) * 100 },
-      { name: 'F1', value: (metrics.f1 ?? 0) * 100 },
-      { name: 'Match', value: (metrics.match_rate ?? 0) * 100 },
+      { name: 'Accuracy', value: metrics.accuracy },
+      { name: 'Precision', value: metrics.precision },
+      { name: 'Recall', value: metrics.recall },
+      { name: 'F1', value: metrics.f1 },
+      { name: 'Match', value: metrics.match_rate },
     ]
+      .filter((row) => row.value != null && !Number.isNaN(Number(row.value)))
+      .map((row) => ({ name: row.name, value: Number(row.value) * 100 }))
   }, [metrics])
 
   return (
@@ -41,24 +76,104 @@ export default function DashboardPage() {
         <div>
           <h1>Dashboard</h1>
           <p>
-            CrewAI Flow closes the finance-ops loop across ERP, bank, and payment processor —
-            candidates, confidence bands, exceptions, journals, and ground-truth evaluation.
+            Intent-driven finance workspace over ERP, bank, and payment processor data — ask in
+            natural language, review exceptions, and close the loop.
           </p>
         </div>
-        <button className="btn btn-primary" onClick={runRecon} disabled={running}>
-          {running ? 'Running pipeline…' : runId ? 'Re-run reconciliation' : 'Start reconciliation'}
-        </button>
+        <div className="row-actions" style={{ alignItems: 'center' }}>
+          <input
+            ref={pdfInputRef}
+            type="file"
+            accept="application/pdf,.pdf"
+            hidden
+            onChange={(e) => onPdfPick(e.target.files?.[0] || null)}
+          />
+          <button
+            type="button"
+            className="btn btn-secondary"
+            disabled={running || uploadingPdf}
+            onClick={() => pdfInputRef.current?.click()}
+            title="Optional bank PDF for OCR intake"
+          >
+            {uploadingPdf ? 'Uploading…' : bankPdfPath ? `PDF: ${bankPdfPath}` : 'Upload bank PDF'}
+          </button>
+          <button className="btn btn-primary" onClick={runRecon} disabled={running}>
+            {running ? 'Running pipeline…' : runId ? 'Re-run reconciliation' : 'Start reconciliation'}
+          </button>
+        </div>
       </div>
+
+      <DashboardQuery onWorkspaceActive={setWorkspaceActive} />
 
       {!runId && (
         <div className="card card-pad">
           <div className="empty">
             <strong>No reconciliation run yet</strong>
-            Start a run to ingest demo invoices & payments, match them, and score accuracy against ground truth.
+            Start a run or ask the workspace to reconcile — demo invoices and payments will load
+            automatically.
           </div>
         </div>
       )}
 
+      {workspaceActive ? (
+        <details className="ws-baseline">
+          <summary>Baseline batch overview</summary>
+          <BaselineOverview
+            metrics={metrics}
+            pending={pending}
+            throughput={throughput}
+            duration={duration}
+            stageMap={stageMap}
+            running={running}
+            chartData={chartData}
+            invoices={invoices.length || cash?.invoice_count || 0}
+            payments={payments.length || cash?.payment_count || 0}
+            cash={cash?.cash_applied}
+          />
+        </details>
+      ) : (
+        <BaselineOverview
+          metrics={metrics}
+          pending={pending}
+          throughput={throughput}
+          duration={duration}
+          stageMap={stageMap}
+          running={running}
+          chartData={chartData}
+          invoices={invoices.length || cash?.invoice_count || 0}
+          payments={payments.length || cash?.payment_count || 0}
+          cash={cash?.cash_applied}
+        />
+      )}
+    </div>
+  )
+}
+
+function BaselineOverview({
+  metrics,
+  pending,
+  throughput,
+  duration,
+  stageMap,
+  running,
+  chartData,
+  invoices,
+  payments,
+  cash,
+}: {
+  metrics: ReturnType<typeof useRun>['metrics']
+  pending: number
+  throughput: number | undefined
+  duration: number | undefined
+  stageMap: Record<string, string>
+  running: boolean
+  chartData: Array<{ name: string; value: number }>
+  invoices: number
+  payments: number
+  cash: number | null | undefined
+}) {
+  return (
+    <div className="stack">
       <div className="grid-5">
         <div className="stat">
           <div className="label">Match rate</div>
@@ -90,8 +205,8 @@ export default function DashboardPage() {
       </div>
 
       <div className="card card-pad">
-        <h2 className="card-title">CrewAI Flow pipeline</h2>
-        <p className="card-sub">13 sequential steps from intake → journals → evaluation → report</p>
+        <h2 className="card-title">Pipeline</h2>
+        <p className="card-sub">Intake through journals, evaluation, and report</p>
         <div className="pipeline" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))' }}>
           {STAGE_ORDER.map((name) => {
             const st = stageMap[name] || (running ? 'pending' : 'idle')
@@ -136,15 +251,15 @@ export default function DashboardPage() {
           <div className="stack" style={{ gap: 10 }}>
             <Link to="/invoices" className="source-card" style={{ textDecoration: 'none' }}>
               <strong>Invoices</strong>
-              <div className="meta">{invoices.length} open AR records from QuickBooks</div>
+              <div className="meta">{invoices} open AR records from QuickBooks</div>
             </Link>
             <Link to="/payments" className="source-card" style={{ textDecoration: 'none' }}>
               <strong>Payments</strong>
-              <div className="meta">{payments.length} receipts from bank + processor</div>
+              <div className="meta">{payments} receipts from bank + processor</div>
             </Link>
             <Link to="/cash" className="source-card" style={{ textDecoration: 'none' }}>
               <strong>Cash applied</strong>
-              <div className="meta">{money(cash?.cash_applied)} posted against invoices</div>
+              <div className="meta">{money(cash)} posted against invoices</div>
             </Link>
             <Link to="/reviews" className="source-card" style={{ textDecoration: 'none' }}>
               <strong>Reviews</strong>

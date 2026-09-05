@@ -20,6 +20,11 @@ from pydantic import BaseModel, Field
 from crewai.flow.flow import Flow, listen, router, start
 
 from src.finance_controller.db import FinanceDB
+from src.finance_controller.review_state import (
+    DECISION_TO_RESULT_STATUS,
+    HITL_ACTIONS,
+    pending_review_items,
+)
 from src.finance_controller.utils import (
     amount_score,
     confidence_score,
@@ -95,7 +100,7 @@ class AIFinanceController(Flow[FinanceState]):
         self.state.stages = stages
         if self.state.run_id:
             self._db.update_stages(self.state.run_id, stages)
-            self._db.audit(f"stage_{status}", f"Stage {name}: {status}", entity_id=name, payload=detail)
+            self._db.audit(f"stage_{status}", f"Stage {name}: {status}", entity_id=name, payload=detail, run_id=self.state.run_id)
 
     # ── 1. conversational_intake ──────────────────────────────────────
 
@@ -128,8 +133,11 @@ class AIFinanceController(Flow[FinanceState]):
         if not self.state.ground_truth_csv_path:
             self.state.ground_truth_csv_path = str(DEMO / "ground_truth.csv")
 
-        self._db.reset_operational_tables()
-        self.state.run_id = self._db.create_run(self.state.user_request, self.state.ar_ap_mode)
+        self.state.run_id = self._db.create_run(
+            self.state.user_request,
+            self.state.ar_ap_mode,
+            bank_pdf_path=self.state.bank_pdf_path,
+        )
         self.state.confirmation_message = (
             f"Understood. Running {self.state.ar_ap_mode} reconciliation on "
             f"bank=`{Path(self.state.bank_csv_path).name}`, "
@@ -151,15 +159,76 @@ class AIFinanceController(Flow[FinanceState]):
             detail = {"skipped": True, "records_extracted": 0, "csv_written_to": None}
             self._stage("extract_bank_pdf", "completed", detail)
             return "pdf_skipped"
-        # PDF extraction is optional demo — mark skipped unless file exists with parser
+
+        pdf_path = Path(self.state.bank_pdf_path)
+        if not pdf_path.is_file():
+            # Allow bare filenames relative to uploads/ or demo/
+            for base in (ROOT / "data" / "uploads", ROOT / "data" / "demo", ROOT / "data" / "synthetic" / "bank_statements"):
+                cand = base / Path(self.state.bank_pdf_path).name
+                if cand.is_file():
+                    pdf_path = cand
+                    break
+
+        if not pdf_path.is_file():
+            detail = {
+                "skipped": True,
+                "records_extracted": 0,
+                "error": f"PDF not found: {self.state.bank_pdf_path}",
+                "note": "CrewAI AMP OCR can still process bank_pdf_path when the file exists in the deployment workspace.",
+            }
+            self._stage("extract_bank_pdf", "completed", detail)
+            return "pdf_skipped"
+
+        try:
+            from src.ingestion.pdf_loader import PDFParseError, parse_payment_pdf
+
+            payments = parse_payment_pdf(pdf_path)
+        except Exception as e:  # noqa: BLE001 — text-layer may fail on scans; AMP OCR handles those
+            detail = {
+                "skipped": True,
+                "records_extracted": 0,
+                "pdf": str(pdf_path),
+                "error": str(e),
+                "note": (
+                    "Local text-layer extract failed (common for scanned PDFs). "
+                    "CrewAI AMP includes OCR — prefer engine=amp for image statements."
+                ),
+            }
+            self._stage("extract_bank_pdf", "completed", detail)
+            return "pdf_skipped"
+
+        out_dir = ROOT / "data" / "uploads"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        out_csv = out_dir / f"bank_from_{pdf_path.stem}.csv"
+        import csv as _csv
+
+        with out_csv.open("w", encoding="utf-8", newline="") as f:
+            w = _csv.DictWriter(
+                f,
+                fieldnames=["transaction_id", "date", "amount", "currency", "merchant", "reference", "description"],
+            )
+            w.writeheader()
+            for p in payments:
+                w.writerow({
+                    "transaction_id": p.get("id"),
+                    "date": p.get("date"),
+                    "amount": p.get("amount"),
+                    "currency": p.get("currency") or "INR",
+                    "merchant": p.get("senderName"),
+                    "reference": p.get("reference"),
+                    "description": p.get("reference") or p.get("senderName"),
+                })
+
+        self.state.bank_csv_path = str(out_csv)
         detail = {
-            "skipped": True,
-            "records_extracted": 0,
-            "csv_written_to": self.state.bank_csv_path,
-            "note": "PDF parser not enabled in this prototype; using provided bank CSV.",
+            "skipped": False,
+            "records_extracted": len(payments),
+            "csv_written_to": str(out_csv),
+            "pdf": str(pdf_path),
+            "extractor": "pdfplumber_text_layer",
         }
         self._stage("extract_bank_pdf", "completed", detail)
-        return "pdf_skipped"
+        return "pdf_ok"
 
     # ── 3. ingest_and_validate ────────────────────────────────────────
 
@@ -206,7 +275,7 @@ class AIFinanceController(Flow[FinanceState]):
         for r in pp:
             add("payment_processor", r)
 
-        self._db.insert_sources(records)
+        self._db.insert_sources(records, run_id=self.state.run_id)
         summary = {
             "total_records_per_source": {
                 "erp": len(erp),
@@ -226,7 +295,7 @@ class AIFinanceController(Flow[FinanceState]):
     @listen(ingest_and_validate)
     def normalize(self) -> str:
         self._stage("normalize", "running")
-        rows = self._db.fetch_sources()
+        rows = self._db.fetch_sources(self.state.run_id)
         alias_hits = 0
         date_fixes = 0
         ccy_fixes = 0
@@ -265,9 +334,9 @@ class AIFinanceController(Flow[FinanceState]):
     @listen(normalize)
     def generate_candidates(self) -> str:
         self._stage("generate_candidates", "running")
-        erp = self._db.fetch_sources("erp")
-        bank = self._db.fetch_sources("bank")
-        pp = self._db.fetch_sources("payment_processor")
+        erp = self._db.fetch_sources(self.state.run_id, "erp")
+        bank = self._db.fetch_sources(self.state.run_id, "bank")
+        pp = self._db.fetch_sources(self.state.run_id, "payment_processor")
         counters = bank + pp
 
         candidates: list[dict[str, Any]] = []
@@ -388,7 +457,7 @@ class AIFinanceController(Flow[FinanceState]):
             if not agg_found:
                 erp_without.append(e["transaction_id"])
 
-        self._db.insert_candidates(candidates)
+        self._db.insert_candidates(candidates, run_id=self.state.run_id)
         summary = {
             "total_candidates": len(candidates),
             "candidates_by_strategy": by_strategy,
@@ -403,8 +472,8 @@ class AIFinanceController(Flow[FinanceState]):
     @listen(generate_candidates)
     def score_candidates(self) -> str:
         self._stage("score_candidates", "running")
-        by_id = {r["transaction_id"]: r for r in self._db.fetch_sources()}
-        cands = self._db.fetch_candidates()
+        by_id = {r["transaction_id"]: r for r in self._db.fetch_sources(self.state.run_id)}
+        cands = self._db.fetch_candidates(self.state.run_id)
         scored = []
         scores = []
         for c in cands:
@@ -431,9 +500,9 @@ class AIFinanceController(Flow[FinanceState]):
             })
             scores.append(conf)
 
-        self._db.conn.execute("DELETE FROM match_candidates")
+        self._db.clear_candidates(self.state.run_id)
         self._db.commit()
-        self._db.insert_candidates(scored)
+        self._db.insert_candidates(scored, run_id=self.state.run_id)
 
         bands = {
             "auto_match_ge_0_90": sum(1 for s in scores if s >= 0.90),
@@ -473,9 +542,9 @@ class AIFinanceController(Flow[FinanceState]):
     @listen("proceed_to_investigation")
     def investigate_exceptions(self) -> str:
         self._stage("investigate_exceptions", "running")
-        sources = self._db.fetch_sources()
+        sources = self._db.fetch_sources(self.state.run_id)
         by_id = {r["transaction_id"]: r for r in sources}
-        cands = self._db.fetch_candidates()
+        cands = self._db.fetch_candidates(self.state.run_id)
         best_by_erp: dict[str, dict] = {}
         best_by_counter: dict[str, dict] = {}
         counts_by_erp: dict[str, int] = {}
@@ -534,7 +603,7 @@ class AIFinanceController(Flow[FinanceState]):
             if n > 1:
                 add_exc(erp_id, "MULTIPLE_CANDIDATES", "REVIEW", float(best_by_erp.get(erp_id, {}).get("confidence") or 0), {"count": n})
 
-        self._db.insert_exceptions(exceptions)
+        self._db.insert_exceptions(exceptions, run_id=self.state.run_id)
         by_action: dict[str, int] = {}
         for e in exceptions:
             a = e.get("recommended_action") or "NONE"
@@ -553,22 +622,43 @@ class AIFinanceController(Flow[FinanceState]):
     @listen(investigate_exceptions)
     def human_review(self) -> str:
         self._stage("human_review", "running")
-        cands = {c["counter_txn_id"]: c for c in self._db.fetch_candidates()}
+        cands = {c["counter_txn_id"]: c for c in self._db.fetch_candidates(self.state.run_id)}
         # also index by erp
-        cands_erp = {c["erp_txn_id"]: c for c in self._db.fetch_candidates()}
+        cands_erp = {c["erp_txn_id"]: c for c in self._db.fetch_candidates(self.state.run_id)}
         reviews = []
         counts = {"APPROVED": 0, "REJECTED": 0, "RESOLVED": 0, "ESCALATED": 0}
+        pending_records: list[dict[str, Any]] = []
 
-        for ex in self._db.fetch_exceptions():
+        for ex in self._db.fetch_exceptions(self.state.run_id):
             et = ex["exception_type"]
+            action = (ex.get("recommended_action") or "").upper()
             conf = float(ex.get("confidence") or 0)
             cand = cands.get(ex["transaction_id"]) or cands_erp.get(ex["transaction_id"])
             amount_s = float((cand or {}).get("amount_score") or 0)
 
+            # True HITL: leave REVIEW / ESCALATE / INVESTIGATE for the UI Reviews queue
+            if action in HITL_ACTIONS:
+                pending_records.append(
+                    {
+                        "exception_id": ex["id"],
+                        "transaction_id": ex["transaction_id"],
+                        "exception_type": et,
+                        "recommended_action": action,
+                        "confidence": conf,
+                    }
+                )
+                self._db.audit(
+                    "human_review_pending",
+                    f"{ex['transaction_id']} awaiting analyst ({et}/{action})",
+                    entity_id=ex["id"],
+                    run_id=self.state.run_id,
+                )
+                continue
+
             if et == "PARTIAL_SETTLEMENT":
                 decision = "RESOLVED"
             elif et == "MISSING_BANK_RECORD":
-                erp = next((r for r in self._db.fetch_sources("erp") if r["transaction_id"] == ex["transaction_id"]), None)
+                erp = next((r for r in self._db.fetch_sources(self.state.run_id, "erp") if r["transaction_id"] == ex["transaction_id"]), None)
                 amt = float((erp or {}).get("amount_norm") or 0)
                 decision = "APPROVED" if amt < 100 else "ESCALATED"
             elif et == "MISSING_ERP_RECORD":
@@ -593,10 +683,20 @@ class AIFinanceController(Flow[FinanceState]):
                 "confidence": conf,
             })
             counts[decision] = counts.get(decision, 0) + 1
-            self._db.audit("human_review", f"{ex['transaction_id']} → {decision}", entity_id=ex["id"])
+            self._db.audit("human_review", f"{ex['transaction_id']} → {decision}", entity_id=ex["id"], run_id=self.state.run_id)
 
-        self._db.insert_reviews(reviews)
-        summary = {"total_reviewed": len(reviews), **{f"{k.lower()}_count": v for k, v in counts.items()}}
+        self._db.insert_reviews(reviews, run_id=self.state.run_id)
+        item_ids = [p["transaction_id"] for p in pending_records]
+        pending_hitl = len(pending_records)
+        summary = {
+            "total_reviewed": len(reviews),
+            "decisions_applied": len(reviews),
+            "pending_hitl": pending_hitl,
+            "pending_human_count": pending_hitl,
+            "item_ids": item_ids,
+            "pending_items": pending_records,
+            **{f"{k.lower()}_count": v for k, v in counts.items()},
+        }
         self.state.human_review_summary = summary
         self._stage("human_review", "completed", summary)
         return "review_ok"
@@ -606,16 +706,27 @@ class AIFinanceController(Flow[FinanceState]):
     @listen(human_review)
     def persist_results(self) -> str:
         self._stage("persist_results", "running")
-        cands = self._db.fetch_candidates()
+        cands = self._db.fetch_candidates(self.state.run_id)
         best_by_erp = {}
         for c in cands:
             prev = best_by_erp.get(c["erp_txn_id"])
             if not prev or float(c.get("confidence") or 0) > float(prev.get("confidence") or 0):
                 best_by_erp[c["erp_txn_id"]] = c
 
-        reviews = {r["transaction_id"]: r for r in self._db.fetch_reviews()}
-        sources = self._db.fetch_sources()
+        reviews = {r["transaction_id"]: r for r in self._db.fetch_reviews(self.state.run_id)}
+        sources = self._db.fetch_sources(self.state.run_id)
         by_id = {r["transaction_id"]: r for r in sources}
+        pending_txns = {
+            p["transaction_id"]
+            for p in (self.state.human_review_summary.get("pending_items") or [])
+        }
+        if not pending_txns:
+            pending_txns = {
+                e["transaction_id"]
+                for e in self._db.fetch_exceptions(self.state.run_id)
+                if e["transaction_id"] not in reviews
+                and str(e.get("recommended_action") or "").upper() in HITL_ACTIONS
+            }
 
         results = []
         by_status: dict[str, int] = {}
@@ -632,14 +743,11 @@ class AIFinanceController(Flow[FinanceState]):
                 status = "AUTO_MATCHED"
             elif review:
                 d = review["decision"]
-                status = {
-                    "APPROVED": "HUMAN_APPROVED",
-                    "RESOLVED": "HUMAN_RESOLVED",
-                    "REJECTED": "HUMAN_REJECTED",
-                    "ESCALATED": "UNMATCHED",
-                }.get(d, "EXCEPTION_RESOLVED")
+                status = DECISION_TO_RESULT_STATUS.get(d, "EXCEPTION_RESOLVED")
                 if c.get("strategy") == "PARTIAL_SETTLEMENT" and d == "RESOLVED":
                     status = "EXCEPTION_RESOLVED"
+            elif counter in pending_txns or erp_id in pending_txns:
+                status = "HUMAN_REVIEW"
             else:
                 status = "UNMATCHED"
 
@@ -669,12 +777,9 @@ class AIFinanceController(Flow[FinanceState]):
             review = reviews.get(r["transaction_id"])
             status = "UNMATCHED"
             if review:
-                status = {
-                    "APPROVED": "HUMAN_APPROVED",
-                    "RESOLVED": "EXCEPTION_RESOLVED",
-                    "REJECTED": "HUMAN_REJECTED",
-                    "ESCALATED": "UNMATCHED",
-                }.get(review["decision"], "UNMATCHED")
+                status = DECISION_TO_RESULT_STATUS.get(review["decision"], "UNMATCHED")
+            elif r["transaction_id"] in pending_txns:
+                status = "HUMAN_REVIEW"
             amt = float(r.get("amount_norm") or 0)
             unmatched_amt += amt
             results.append({
@@ -689,7 +794,29 @@ class AIFinanceController(Flow[FinanceState]):
             })
             by_status[status] = by_status.get(status, 0) + 1
 
-        self._db.insert_results(results)
+        existing_txns = {row["transaction_id"] for row in results}
+        for tid in pending_txns:
+            if tid in existing_txns:
+                continue
+            src = by_id.get(tid) or {}
+            amt = float(src.get("amount_norm") or src.get("amount") or 0)
+            unmatched_amt += amt
+            results.append(
+                {
+                    "id": new_id("RES"),
+                    "transaction_id": tid,
+                    "matched_txn_id": None,
+                    "final_status": "HUMAN_REVIEW",
+                    "confidence": 0,
+                    "reconciled_amount": 0,
+                    "strategy": None,
+                    "details": {"pending_human": True},
+                }
+            )
+            by_status["HUMAN_REVIEW"] = by_status.get("HUMAN_REVIEW", 0) + 1
+            existing_txns.add(tid)
+
+        self._db.insert_results(results, run_id=self.state.run_id)
         summary = {
             "total_results": len(results),
             "results_by_status": by_status,
@@ -706,7 +833,7 @@ class AIFinanceController(Flow[FinanceState]):
     def create_journal_entries(self) -> str:
         self._stage("create_journal_entries", "running")
         mode = self.state.ar_ap_mode
-        results = self._db.fetch_results()
+        results = self._db.fetch_results(self.state.run_id)
         journals = []
         writebacks = []
 
@@ -733,7 +860,7 @@ class AIFinanceController(Flow[FinanceState]):
 
         for r in results:
             amt = float(r.get("reconciled_amount") or 0) or float(
-                next((s.get("amount_norm") or 0 for s in self._db.fetch_sources() if s["transaction_id"] == r["transaction_id"]), 0)
+                next((s.get("amount_norm") or 0 for s in self._db.fetch_sources(self.state.run_id) if s["transaction_id"] == r["transaction_id"]), 0)
             )
             status = r["final_status"]
             txn = r["transaction_id"]
@@ -747,7 +874,7 @@ class AIFinanceController(Flow[FinanceState]):
                         half = round(amt / 2, 2)
                         add_je("AR", "POSTED", "1010", "1200", half, txn, "Resolved split — cash/AR")
                         add_je("ADJ", "POSTED", "1010", "9999", amt - half, txn, "Resolved split — suspense")
-                    elif status in ("HUMAN_REJECTED", "UNMATCHED"):
+                    elif status in ("HUMAN_REJECTED", "UNMATCHED", "HUMAN_REVIEW", "PENDING"):
                         add_je("AR", "DRAFT", "9999", "1200", amt, txn, "Unmatched / rejected — suspense")
                 else:  # AP
                     if status in ("AUTO_MATCHED", "HUMAN_APPROVED"):
@@ -756,11 +883,11 @@ class AIFinanceController(Flow[FinanceState]):
                         half = round(amt / 2, 2)
                         add_je("AP", "POSTED", "2000", "1010", half, txn, "Resolved split — AP/cash")
                         add_je("ADJ", "POSTED", "2000", "9999", amt - half, txn, "Resolved split — suspense")
-                    elif status in ("HUMAN_REJECTED", "UNMATCHED"):
+                    elif status in ("HUMAN_REJECTED", "UNMATCHED", "HUMAN_REVIEW", "PENDING"):
                         add_je("AP", "DRAFT", "9999", "2000", amt, txn, "Unmatched / rejected — suspense")
 
-        self._db.insert_journals(journals)
-        self._db.insert_writebacks(writebacks)
+        self._db.insert_journals(journals, run_id=self.state.run_id)
+        self._db.insert_writebacks(writebacks, run_id=self.state.run_id)
         by_type: dict[str, int] = {}
         by_st: dict[str, int] = {}
         for j in journals:
@@ -784,12 +911,12 @@ class AIFinanceController(Flow[FinanceState]):
         self._stage("evaluate", "running")
         gt_path = Path(self.state.ground_truth_csv_path)
         gt_rows = read_csv(gt_path) if gt_path.exists() else []
-        results = {r["transaction_id"]: r for r in self._db.fetch_results()}
+        results = {r["transaction_id"]: r for r in self._db.fetch_results(self.state.run_id)}
         # also allow lookup by matched erp id
-        by_erp = {r.get("matched_txn_id"): r for r in self._db.fetch_results() if r.get("matched_txn_id")}
+        by_erp = {r.get("matched_txn_id"): r for r in self._db.fetch_results(self.state.run_id) if r.get("matched_txn_id")}
 
         positives = {"AUTO_MATCHED", "HUMAN_APPROVED", "HUMAN_RESOLVED", "EXCEPTION_RESOLVED"}
-        negatives = {"HUMAN_REJECTED", "UNMATCHED"}
+        negatives = {"HUMAN_REJECTED", "UNMATCHED", "HUMAN_REVIEW", "PENDING"}
 
         tp = fp = fn = tn = 0
         details = []
@@ -831,7 +958,7 @@ class AIFinanceController(Flow[FinanceState]):
         f1 = (2 * precision * recall / (precision + recall)) if (precision + recall) else 0.0
         total = len(gt_rows) or 1
         accuracy = sum(1 for d in details if d["correct"]) / total
-        match_rate = sum(1 for r in self._db.fetch_results() if r["final_status"] in positives) / max(len(self._db.fetch_results()), 1)
+        match_rate = sum(1 for r in self._db.fetch_results(self.state.run_id) if r["final_status"] in positives) / max(len(self._db.fetch_results(self.state.run_id)), 1)
         false_match_rate = fp / max(tp + fp, 1)
 
         metrics = {
@@ -844,7 +971,7 @@ class AIFinanceController(Flow[FinanceState]):
             "tp": tp, "fp": fp, "fn": fn, "tn": tn,
             "details": details,
         }
-        self._db.save_metrics(metrics)
+        self._db.save_metrics(metrics, run_id=self.state.run_id)
         self.state.evaluation_metrics = metrics
         self._stage("evaluate", "completed", {k: metrics[k] for k in ("accuracy", "precision", "recall", "f1", "match_rate")})
         return "evaluate_ok"
@@ -857,6 +984,20 @@ class AIFinanceController(Flow[FinanceState]):
         m = self.state.evaluation_metrics
         p = self.state.persistence_summary
         j = self.state.journal_entries_summary
+        h = self.state.human_review_summary or {}
+        # Authoritative pending list is the persisted records, not a detached count.
+        pending_rows = pending_review_items(self._db, self.state.run_id)
+        pending_ids = [r["transaction_id"] for r in pending_rows]
+        pending_count = len(pending_rows)
+        decisions_applied = int(h.get("decisions_applied") or h.get("total_reviewed") or 0)
+        ids_line = ", ".join(pending_ids) if pending_ids else "None"
+        if pending_count and ids_line == "None":
+            ids_line = ", ".join(pending_ids)
+        human_section = (
+            f"- Decisions Applied: {decisions_applied}\n"
+            f"- Pending Human Count: {pending_count}\n"
+            f"- Item IDs: {ids_line}"
+        )
         report = f"""# AI Finance Controller — Run Report
 
 ## 1. Executive Summary
@@ -878,7 +1019,7 @@ Match rate **{m.get('match_rate', 0):.1%}**, accuracy **{m.get('accuracy', 0):.1
 {self.state.investigation_summary}
 
 ## 6. Human Review Decisions
-{self.state.human_review_summary}
+{human_section}
 
 ## 7. Journal Entries & ERP Write-Back
 {j}
@@ -917,6 +1058,14 @@ python scripts/run_finance_flow.py
             "auto_match_count": self.state.auto_match_count,
             "review_band_count": self.state.review_band_count,
             "exception_count": self.state.exception_count,
+            "pending_human_count": pending_count,
+            "pending_review_items": pending_rows,
+            "human_review": {
+                **h,
+                "pending_human_count": pending_count,
+                "item_ids": pending_ids,
+                "decisions_applied": decisions_applied,
+            },
         }
         self._db.finish_run(self.state.run_id, summary, report, status="completed")
         self._stage("summary_report", "completed", {"report_chars": len(report)})
@@ -932,6 +1081,9 @@ def run_finance_flow(
     bank_pdf_path: str | None = None,
     db_path: str | Path | None = None,
 ) -> dict[str, Any]:
+    import logging
+
+    log = logging.getLogger(__name__)
     os.environ["CREWAI_TRACING_ENABLED"] = "false"
     flow = AIFinanceController(db_path=db_path)
     inputs = {
@@ -947,7 +1099,17 @@ def run_finance_flow(
     if bank_pdf_path:
         inputs["bank_pdf_path"] = bank_pdf_path
 
+    log.info(
+        "CREWAI_KICKOFF AIFinanceController inputs=%s",
+        {k: (str(v)[:120] if isinstance(v, str) else v) for k, v in inputs.items()},
+    )
     report = flow.kickoff(inputs=inputs)
+    log.info(
+        "CREWAI_KICKOFF_DONE run_id=%s stages=%s eval=%s",
+        flow.state.run_id,
+        [s.get("name") for s in (flow.state.stages or [])],
+        {k: flow.state.evaluation_metrics.get(k) for k in ("match_rate", "accuracy", "f1")},
+    )
     return {
         "run_id": flow.state.run_id,
         "ar_ap_mode": flow.state.ar_ap_mode,
