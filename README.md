@@ -1,6 +1,6 @@
-# ReconQ — AI-Powered Financial Reconciliation Engine
+# ReconIQ — AI-Powered Financial Reconciliation Engine
 
-ReconQ is an autonomous reconciliation engine that matches incoming payments to open invoices, combining a deterministic rule engine with AI-based investigation for genuinely ambiguous cases — plus a natural-language copilot layer that lets you query the system in plain English and get back a purpose-built view of the answer.
+ReconIQ is an autonomous reconciliation engine that matches incoming payments to open invoices, combining a deterministic rule engine with AI-based investigation for genuinely ambiguous cases — plus a natural-language copilot layer that lets you query the system in plain English and get back a purpose-built view of the answer.
 
 Built for the Razorpay AI Buildathon, Track 04 — AI Finance Controller.
 
@@ -8,7 +8,7 @@ Built for the Razorpay AI Buildathon, Track 04 — AI Finance Controller.
 
 ## The problem
 
-Finance teams closing their books manually spend days matching bank payments against ERP invoices — a process complicated by unstructured bank narrations, partial settlements, and payments that don't cleanly map to a single invoice. This is typically a multi-day close cycle for mid-market finance teams. ReconQ automates this loop end-to-end, while staying honest about what it can and can't resolve on its own.
+Finance teams closing their books manually spend days matching bank payments against ERP invoices — a process complicated by unstructured bank narrations, partial settlements, and payments that don't cleanly map to a single invoice. This is typically a multi-day close cycle for mid-market finance teams. ReconIQ automates this loop end-to-end, while staying honest about what it can and can't resolve on its own.
 
 ---
 
@@ -74,7 +74,7 @@ Audit trail + HITL review queue
   and a confidence score.
 ```
 
-**Design choice, not a limitation:** ReconQ deliberately closes **one** finance-ops loop — AR cash application (payment → invoice matching) — rather than spreading across multiple. PO matching, credit-note netting, multi-entity support, and full ledger posting are intentionally out of scope for this submission, in favor of depth and measured accuracy on the core loop.
+**Design choice, not a limitation:** ReconIQ deliberately closes **one** finance-ops loop — AR cash application (payment → invoice matching) — rather than spreading across multiple. PO matching, credit-note netting, multi-entity support, and full ledger posting are intentionally out of scope for this submission, in favor of depth and measured accuracy on the core loop.
 
 ### Copilot layer
 
@@ -189,4 +189,4 @@ python -m pytest
 
 ---
 
-*Built by Vedant Singh Thakur as part of ReconQ, an in-development reconciliation platform. This repo contains the sanitized, standalone core engine — extracted for this submission from the full product.*
+*Built by Vedant Singh Thakur as part of ReconIQ, an in-development reconciliation platform. This repo contains the sanitized, standalone core engine — extracted for this submission from the full product.*

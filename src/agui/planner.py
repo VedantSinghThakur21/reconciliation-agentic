@@ -40,7 +40,7 @@ _disabled_providers: set[str] = set()
 GROQ_CHAT_URL = "https://api.groq.com/openai/v1/chat/completions"
 DEFAULT_GROQ_MODEL = "openai/gpt-oss-120b"
 
-PLANNER_SYSTEM = f"""You are the ReconQ finance workspace planner.
+PLANNER_SYSTEM = f"""You are the ReconIQ finance workspace planner.
 
 Interpret the user's natural-language request semantically. Do NOT rely on fixed catchphrases.
 Infer what they want done and what they want to see.

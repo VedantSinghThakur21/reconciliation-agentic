@@ -1,6 +1,6 @@
 # Architecture — reconq-core
 
-Extracted AR cash-application pipeline from ReconQ.
+Extracted AR cash-application pipeline from ReconIQ.
 
 ## Pipeline
 
@@ -72,7 +72,7 @@ python scripts/run_pipeline.py --invoices ... --payments ... --use-crewai
 | Ingestion | `src/ingestion/csv_loader.py` | `parse_invoice_csv`, `parse_payment_csv` |
 | Rule engine | `src/rule_engine/strict_matcher.py` | `StrictMatcher` |
 | Name similarity | `src/rule_engine/name_matching.py` | `name_similarity`, `is_same_customer` |
-| AI / graph | `src/ai_matcher/nodes.py`, `graph.py` | LangGraph nodes (adapted from ReconQ) |
+| AI / graph | `src/ai_matcher/nodes.py`, `graph.py` | LangGraph nodes (adapted from ReconIQ) |
 | Optional AMP | `src/agents/crewai_client.py` | `CrewAIClient`, `enrich_leftovers_with_crewai` |
 | LLM | `src/llm/mock_provider.py` | `MockProvider` via `get_llm_provider()` |
 | Verification | `src/verification/balance_check.py` | `validate_balanced_entry` |

@@ -37,7 +37,7 @@ export default function Layout() {
         <div className="sidebar-brand">
           <div className="sidebar-logo">RQ</div>
           <div>
-            <strong>ReconQ</strong>
+            <strong>ReconIQ</strong>
             <span>Finance Controller</span>
           </div>
         </div>

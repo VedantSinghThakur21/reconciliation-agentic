@@ -71,7 +71,7 @@ export function useWorkspaceAgent() {
       agentRef.current = new HttpAgent({
         url: '/api/agui',
         agentId: 'reconq-workspace',
-        description: 'ReconQ intent-driven finance workspace',
+        description: 'ReconIQ intent-driven finance workspace',
         initialState: {},
       })
     }
