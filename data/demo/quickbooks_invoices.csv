@@ -1,0 +1,56 @@
+Invoice_ID,Invoice_Date,Customer_Name,Invoice_Amount,Due_Date,Status,Reference_Number,Source
+INV-1001,2026-03-02,Acme Corp,4503.74,2026-03-17,open,REF-ACME-1001,quickbooks
+INV-1002,2026-03-03,Test Vendor Ltd,8528.14,2026-03-18,open,REF-TVL-1002,quickbooks
+INV-1003,2026-03-04,Globex Inc,4586.74,2026-03-19,open,REF-GLOBEX-1003,quickbooks
+INV-1004,2026-03-05,Initech Solutions,25011.59,2026-03-20,open,REF-INI-1004,quickbooks
+INV-1005,2026-03-06,Soylent Corp,2503.09,2026-03-21,open,REF-SOY-1005,quickbooks
+INV-1006,2026-03-07,Umbrella Ltd,8564.60,2026-03-22,open,REF-UMB-1006,quickbooks
+INV-1007,2026-03-08,Wayne Enterprises,25025.72,2026-03-23,open,REF-WAYNE-1007,quickbooks
+INV-1008,2026-03-09,Stark Industries,25053.22,2026-03-24,open,REF-STARK-1008,quickbooks
+INV-1009,2026-03-10,Oscorp,30035.81,2026-03-25,open,REF-OSC-1009,quickbooks
+INV-1010,2026-03-11,Wonka Industries,2597.81,2026-03-26,open,REF-WONKA-1010,quickbooks
+INV-1011,2026-03-12,Cyberdyne Systems,15043.28,2026-03-27,open,REF-CYB-1011,quickbooks
+INV-1012,2026-03-13,Hooli Inc,8597.34,2026-03-28,open,REF-HOOLI-1012,quickbooks
+INV-1013,2026-03-14,Pied Piper,4548.10,2026-03-29,open,REF-PIPER-1013,quickbooks
+INV-1014,2026-03-15,Massive Dynamic,12077.26,2026-03-30,open,REF-MASS-1014,quickbooks
+INV-1015,2026-03-16,Aperture Science,2593.46,2026-03-31,open,REF-APT-1015,quickbooks
+INV-1016,2026-03-17,Buy n Large,4548.08,2026-04-01,open,REF-BNL-1016,quickbooks
+INV-1017,2026-03-18,Dunder Mifflin,10080.62,2026-04-02,open,REF-DUND-1017,quickbooks
+INV-1018,2026-03-19,Prestige Worldwide,12073.19,2026-04-03,open,REF-PREST-1018,quickbooks
+INV-1019,2026-03-20,Vandelay Industries,4505.66,2026-04-04,open,REF-VAND-1019,quickbooks
+INV-1020,2026-03-21,Bluth Company,10010.86,2026-04-05,open,REF-BLUTH-1020,quickbooks
+INV-1021,2026-03-22,Acme Corp,4548.28,2026-04-06,open,REF-ACME-1021,quickbooks
+INV-1022,2026-03-23,Test Vendor Ltd,12020.37,2026-04-07,open,REF-TVL-1022,quickbooks
+INV-1023,2026-03-24,Globex Inc,8585.27,2026-04-08,open,REF-GLOBEX-1023,quickbooks
+INV-1024,2026-03-25,Initech Solutions,4577.63,2026-04-09,open,REF-INI-1024,quickbooks
+INV-1025,2026-03-26,Soylent Corp,25093.24,2026-04-10,open,REF-SOY-1025,quickbooks
+INV-1026,2026-03-27,Umbrella Ltd,20048.27,2026-04-11,open,REF-UMB-1026,quickbooks
+INV-1027,2026-03-28,Wayne Enterprises,25028.68,2026-04-12,open,REF-WAYNE-1027,quickbooks
+INV-1028,2026-03-29,Stark Industries,2529.82,2026-04-13,open,REF-STARK-1028,quickbooks
+INV-1029,2026-03-30,Oscorp,12051.27,2026-04-14,open,REF-OSC-1029,quickbooks
+INV-1030,2026-03-31,Wonka Industries,8572.88,2026-04-15,open,REF-WONKA-1030,quickbooks
+INV-1031,2026-04-01,Cyberdyne Systems,12027.66,2026-04-16,open,REF-CYB-1031,quickbooks
+INV-1032,2026-04-02,Hooli Inc,15082.46,2026-04-17,open,REF-HOOLI-1032,quickbooks
+INV-1033,2026-04-03,Pied Piper,10017.25,2026-04-18,open,REF-PIPER-1033,quickbooks
+INV-1034,2026-04-04,Massive Dynamic,25068.26,2026-04-19,open,REF-MASS-1034,quickbooks
+INV-1035,2026-04-05,Aperture Science,30054.90,2026-04-20,open,REF-APT-1035,quickbooks
+INV-1036,2026-04-06,Buy n Large,15046.22,2026-04-21,open,REF-BNL-1036,quickbooks
+INV-1037,2026-04-07,Dunder Mifflin,7565.49,2026-04-22,open,REF-DUND-1037,quickbooks
+INV-1038,2026-04-08,Prestige Worldwide,2514.15,2026-04-23,open,REF-PREST-1038,quickbooks
+INV-1039,2026-04-09,Vandelay Industries,7587.42,2026-04-24,open,REF-VAND-1039,quickbooks
+INV-1040,2026-04-10,Bluth Company,4549.38,2026-04-25,open,REF-BLUTH-1040,quickbooks
+INV-1041,2026-04-11,Acme Corp,20067.25,2026-04-26,open,REF-ACME-1041,quickbooks
+INV-1042,2026-04-12,Test Vendor Ltd,25001.68,2026-04-27,open,REF-TVL-1042,quickbooks
+INV-1043,2026-04-13,Globex Inc,4587.88,2026-04-28,open,REF-GLOBEX-1043,quickbooks
+INV-1044,2026-04-14,Initech Solutions,10098.64,2026-04-29,open,REF-INI-1044,quickbooks
+INV-1045,2026-04-15,Soylent Corp,4537.43,2026-04-30,open,REF-SOY-1045,quickbooks
+INV-1046,2026-04-16,Umbrella Ltd,20000.95,2026-05-01,open,REF-UMB-1046,quickbooks
+INV-1047,2026-04-17,Wayne Enterprises,10064.76,2026-05-02,open,REF-WAYNE-1047,quickbooks
+INV-1048,2026-04-18,Stark Industries,25013.87,2026-05-03,open,REF-STARK-1048,quickbooks
+INV-1049,2026-04-19,Oscorp,10081.51,2026-05-04,open,REF-OSC-1049,quickbooks
+INV-1050,2026-04-20,Wonka Industries,8519.37,2026-05-05,open,REF-WONKA-1050,quickbooks
+INV-1051,2026-04-21,Cyberdyne Systems,7569.95,2026-05-06,open,REF-CYB-1051,quickbooks
+INV-1052,2026-04-22,Hooli Inc,25000.60,2026-05-07,open,REF-HOOLI-1052,quickbooks
+INV-1053,2026-04-23,Pied Piper,20002.11,2026-05-08,open,REF-PIPER-1053,quickbooks
+INV-1054,2026-04-24,Massive Dynamic,12039.24,2026-05-09,open,REF-MASS-1054,quickbooks
+INV-1055,2026-04-25,Aperture Science,8572.95,2026-05-10,open,REF-APT-1055,quickbooks

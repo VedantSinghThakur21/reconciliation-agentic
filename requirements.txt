@@ -1,0 +1,7 @@
+langgraph>=0.2.0
+pytest>=8.0.0
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+pydantic>=2.0.0
+crewai>=0.80.0
+rapidfuzz>=3.0.0

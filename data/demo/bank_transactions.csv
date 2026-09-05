@@ -1,0 +1,41 @@
+Transaction_ID,Transaction_Date,Description,Reference_Number,Debit,Credit,Customer_Name,Source
+TXN-2001,2026-03-22,Settlement from Test Vendor Ltd,REF-TVL-1002,0,8528.14,Test Vendor Ltd,bank
+TXN-2002,2026-03-23,Settlement from Globex Inc,REF-GLOBEX-1003,0,4586.74,Globex Inc,bank
+TXN-2004,2026-03-25,Settlement from Soylent Corp,REF-SOY-1005,0,2503.09,Soylent Corp,bank
+TXN-2005,2026-03-26,Settlement from Umbrella Ltd,REF-UMB-1006,0,8564.60,Umbrella Ltd,bank
+TXN-2007,2026-03-28,Settlement from Stark Industries,REF-STARK-1008,0,25053.22,Stark Industries,bank
+TXN-2008,2026-03-29,Settlement from Oscorp,REF-OSC-1009,0,30035.81,Oscorp,bank
+TXN-2010,2026-03-31,Settlement from Cyberdyne Systems,REF-CYB-1011,0,15043.28,Cyberdyne Systems,bank
+TXN-2011,2026-04-01,Settlement from Hooli Inc,REF-HOOLI-1012,0,8597.34,Hooli Inc,bank
+TXN-2013,2026-04-03,Settlement from Massive Dynamic,REF-MASS-1014,0,12077.26,Massive Dynamic,bank
+TXN-2014,2026-04-04,Settlement from Aperture Science,REF-APT-1015,0,2593.46,Aperture Science,bank
+TXN-2016,2026-04-06,Settlement from Dunder Mifflin,REF-DUND-1017,0,10080.62,Dunder Mifflin,bank
+TXN-2017,2026-04-07,Settlement from Prestige Worldwide,REF-PREST-1018,0,12073.19,Prestige Worldwide,bank
+TXN-2019,2026-04-09,Settlement from Bluth Company,REF-BLUTH-1020,0,10010.86,Bluth Company,bank
+TXN-2020,2026-04-10,Settlement from Acme Corp,REF-ACME-1021,0,4548.28,Acme Corp,bank
+TXN-2022,2026-04-12,Settlement from Globex Inc,REF-GLOBEX-1023,0,8585.27,Globex Inc,bank
+TXN-2023,2026-04-13,Settlement from Initech Solutions,REF-INI-1024,0,4577.63,Initech Solutions,bank
+TXN-2025,2026-04-15,Settlement from Umbrella Ltd,REF-UMB-1026,0,20048.27,Umbrella Ltd,bank
+TXN-2026,2026-04-16,Settlement from Wayne Enterprises,REF-WAYNE-1027,0,25028.68,Wayne Enterprises,bank
+TXN-2028,2026-04-18,Settlement from Oscorp,REF-OSC-1029,0,12051.27,Oscorp,bank
+TXN-2029,2026-04-19,Settlement from Wonka Industries,REF-WONKA-1030,0,8572.88,Wonka Industries,bank
+TXN-2031,2026-04-21,Settlement from Hooli Inc,REF-HOOLI-1032,0,15082.46,Hooli Inc,bank
+TXN-2032,2026-04-22,Settlement from Pied Piper,REF-PIPER-1033,0,10017.25,Pied Piper,bank
+TXN-2034,2026-04-24,Settlement from Aperture Science,REF-APT-1035,0,30054.90,Aperture Science,bank
+TXN-2035,2026-04-25,Settlement from Buy n Large,REF-BNL-1036,0,15046.22,Buy n Large,bank
+TXN-2037,2026-04-27,Settlement from Prestige Worldwide,REF-PREST-1038,0,2514.15,Prestige Worldwide,bank
+TXN-2038,2026-04-28,Settlement from Vandelay Industries,REF-VAND-1039,0,7587.42,Vandelay Industries,bank
+TXN-2040,2026-04-30,Settlement from Acme Corp,REF-ACME-1041,0,20067.25,Acme Corp,bank
+TXN-2041,2026-05-01,Settlement from Test Vendor Ltd,REF-TVL-1042,0,25001.68,Test Vendor Ltd,bank
+TXN-2100,2026-05-10,Settlement from Globex Inc,NEFT-FUZZY-0,0,4587.88,Globex Inc,bank
+TXN-2101,2026-05-11,Settlement from INITECH SOL,NEFT-FUZZY-1,0,10098.64,INITECH SOL,bank
+TXN-2102,2026-05-12,Settlement from Soylent Corporation,NEFT-FUZZY-2,0,4537.43,Soylent Corporation,bank
+TXN-2103,2026-05-13,Settlement from Umbrella L,NEFT-FUZZY-3,0,20000.95,Umbrella L,bank
+TXN-2104,2026-05-14,Settlement from Wayne Ent,NEFT-FUZZY-4,0,10064.76,Wayne Ent,bank
+TXN-2105,2026-05-15,Settlement from Stark Ind,NEFT-FUZZY-5,0,25013.87,Stark Ind,bank
+TXN-2200,2026-05-30,Settlement from Unknown Payer 1,UPI-MISS-0,0,3333.33,Unknown Payer 1,bank
+TXN-2201,2026-05-31,Settlement from Unknown Payer 2,UPI-MISS-1,0,3433.33,Unknown Payer 2,bank
+TXN-2202,2026-06-01,Settlement from Unknown Payer 3,UPI-MISS-2,0,3533.33,Unknown Payer 3,bank
+TXN-2203,2026-06-02,Settlement from Unknown Payer 4,UPI-MISS-3,0,3633.33,Unknown Payer 4,bank
+TXN-2300,2026-06-09,Settlement from Acme Corp,REF-ACME-1001,0,4503.74,Acme Corp,bank
+TXN-2301,2026-06-10,Settlement from Test Vendor Ltd,REF-TVL-1002,0,8528.14,Test Vendor Ltd,bank

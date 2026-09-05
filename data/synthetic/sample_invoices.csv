@@ -1,0 +1,6 @@
+Invoice_ID,Invoice_Date,Customer_Name,Invoice_Amount,Due_Date,Status,Reference_Number
+INV-1001,2026-03-25,Acme Corp,10000.00,2026-04-05,open,REF-ACME-001
+INV-1002,2026-03-26,Test Vendor Ltd,15000.00,2026-04-06,open,REF-TVL-002
+INV-1003,2026-03-27,Globex Inc,20000.00,2026-04-07,open,REF-GLOBEX-003
+INV-1004,2026-03-28,Initech Solutions,8500.00,2026-04-08,open,REF-INI-004
+INV-1005,2026-03-29,Soylent Corp,12000.00,2026-04-09,open,REF-SOY-005

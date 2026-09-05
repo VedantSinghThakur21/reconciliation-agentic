@@ -1,0 +1,6 @@
+Transaction_ID,Transaction_Date,Description,Reference_Number,Debit,Credit,Customer_Name
+TXN-1001,2026-04-01,NEFT from Acme Corp,REF-ACME-001,0,10000.00,Acme Corp
+TXN-1002,2026-04-02,NEFT from Test Vendor Ltd,REF-TVL-002,0,15000.00,Test Vendor Ltd
+TXN-1003,2026-04-03,NEFT from Globex Inc,NEFT-99999,0,20000.00,Globex Inc
+TXN-1004,2026-04-04,UPI from Unknown Payer,UPI-555,0,4500.00,Unknown Payer
+TXN-1005,2026-04-05,NEFT INITECH SOL,REF-INI-004,0,8500.00,INITECH SOL

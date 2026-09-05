@@ -1,0 +1,5 @@
+transaction_id,date,amount,currency,merchant,reference,description
+PP-3001,2026-03-17,4697.60,INR,Nykaa,REF-NYKA-1017,Settlement Nykaa
+PP-3002,2026-03-18,4834.95,INR,DMart,REF-DMAR-1018,Settlement DMart
+PP-3003,2026-03-19,4972.30,INR,Asian Paints,REF-ASIA-1019,Settlement Asian Paints
+PP-3100,2026-03-22,2692.18,INR,Bajaj Auto,PARTIAL-50,Partial settlement
