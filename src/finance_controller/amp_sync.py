@@ -1200,7 +1200,12 @@ def _hydrate_demo_sources(db: Any, *, run_id: str, ar_ap_mode: str = "AR") -> di
     """
     from pathlib import Path
 
-    from src.finance_controller.utils import new_id, read_csv, stub_erp_transactions
+    from src.finance_controller.utils import (
+        DEMO_ERP_COUNT,
+        new_id,
+        read_csv,
+        stub_erp_transactions,
+    )
 
     root = Path(__file__).resolve().parents[2]
     demo = root / "data" / "demo"
@@ -1209,7 +1214,7 @@ def _hydrate_demo_sources(db: Any, *, run_id: str, ar_ap_mode: str = "AR") -> di
     if not bank_path.exists():
         return {}
 
-    erp = stub_erp_transactions(24, mode=ar_ap_mode)
+    erp = stub_erp_transactions(DEMO_ERP_COUNT, mode=ar_ap_mode)
     bank = read_csv(bank_path)
     pp = read_csv(pp_path) if pp_path.exists() else []
     records: list[dict[str, Any]] = []

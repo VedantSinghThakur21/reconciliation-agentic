@@ -1,5 +1,7 @@
 transaction_id,date,amount,currency,merchant,reference,description
-PP-3001,2026-03-17,4697.60,INR,Nykaa,REF-NYKA-1017,Settlement Nykaa
-PP-3002,2026-03-18,4834.95,INR,DMart,REF-DMAR-1018,Settlement DMart
-PP-3003,2026-03-19,4972.30,INR,Asian Paints,REF-ASIA-1019,Settlement Asian Paints
-PP-3100,2026-03-22,2692.18,INR,Bajaj Auto,PARTIAL-50,Partial settlement
+PP-3001,2026-04-10,7994.00,INR,Cipla,REF-CIPL-1041,Settlement Cipla
+PP-3002,2026-04-11,8131.35,INR,Biocon,REF-BIOC-1042,Settlement Biocon
+PP-3003,2026-04-12,8268.70,INR,HCL Tech,REF-HCL -1043,Settlement HCL Tech
+PP-3004,2026-04-13,8406.05,INR,Tech Mahindra,REF-TECH-1044,Settlement Tech Mahindra
+PP-3005,2026-04-14,17086.80,INR,Mindtree,REF-MIND-1045,Settlement Mindtree
+PP-3100,2026-04-18,4546.40,INR,TVS Motor,PARTIAL-50,Partial settlement

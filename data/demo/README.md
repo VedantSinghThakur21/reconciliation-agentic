@@ -6,7 +6,7 @@ Brief-aligned CSV formats:
 - `payment_processor.csv` — same schema
 - `ground_truth.csv` — `transaction_id,expected_match_id,expected_status,exception_type`
 
-ERP records are generated in-flow (24 Indian-company stubs).
+ERP records are generated in-flow (`DEMO_ERP_COUNT` Indian-company stubs; 50+ labeled eval batch).
 
 ```bash
 python scripts/generate_fc_demo_data.py

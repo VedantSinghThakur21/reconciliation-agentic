@@ -70,13 +70,27 @@ def read_csv(path: Path) -> list[dict[str, str]]:
     return list(csv.DictReader(text.splitlines()))
 
 
-def stub_erp_transactions(n: int = 24, mode: str = "AR") -> list[dict[str, Any]]:
+# Demo AR batch size for finance-controller eval (must stay in sync with
+# scripts/generate_fc_demo_data.py). Track requirement: 50+ records.
+DEMO_ERP_COUNT = 51
+
+
+def stub_erp_transactions(n: int | None = None, mode: str = "AR") -> list[dict[str, Any]]:
+    if n is None:
+        n = DEMO_ERP_COUNT
     companies = [
         "Amazon", "Google Cloud", "Oracle", "Salesforce", "Microsoft",
         "Tata Consultancy Services", "Infosys", "Wipro", "Reliance Industries",
         "HDFC Bank", "ICICI Bank", "Flipkart", "Zomato", "Swiggy",
         "Paytm", "PhonePe", "Nykaa", "DMart", "Asian Paints", "Maruti Suzuki",
         "Titan", "Bajaj Auto", "Hindustan Unilever", "ITC",
+        "Kotak Mahindra", "Axis Bank", "Jio Platforms", "Myntra",
+        "Ola Electric", "BharatPe", "Razorpay", "Freshworks",
+        "Zoho", "Persistent Systems", "L&T", "Adani Ports",
+        "Britannia", "Nestle India", "Sun Pharma", "Dr Reddy",
+        "Cipla", "Biocon", "HCL Tech", "Tech Mahindra",
+        "Mindtree", "Lupin", "Godrej", "Mahindra & Mahindra",
+        "TVS Motor", "Hero MotoCorp", "Eicher Motors",
     ]
     base = date(2026, 3, 1)
     rows = []

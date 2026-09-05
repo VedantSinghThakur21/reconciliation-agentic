@@ -235,7 +235,9 @@ class AIFinanceController(Flow[FinanceState]):
     @listen(extract_bank_pdf)
     def ingest_and_validate(self) -> str:
         self._stage("ingest_and_validate", "running")
-        erp = stub_erp_transactions(24, mode=self.state.ar_ap_mode)
+        from src.finance_controller.utils import DEMO_ERP_COUNT
+
+        erp = stub_erp_transactions(DEMO_ERP_COUNT, mode=self.state.ar_ap_mode)
         bank = read_csv(Path(self.state.bank_csv_path))
         pp = read_csv(Path(self.state.payment_processor_csv_path))
 
