@@ -189,4 +189,4 @@ python -m pytest
 
 ---
 
-*Built by Vedant Singh Thakur as part of ReconIQ, an in-development reconciliation platform. This repo contains the sanitized, standalone core engine — extracted for this submission from the full product.*
+*Built by Vedant Singh Thakur. ReconIQ is a working prototype and part of a broader product I am building as a startup. This repo is the sanitized, standalone core engine extracted for this submission.*
