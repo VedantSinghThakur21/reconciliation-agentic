@@ -189,17 +189,22 @@ def main() -> None:
     bank_rows = [r for s, r in payments if s == "bank"]
     pp_rows = [r for s, r in payments if s == "payment_processor"]
 
+    # CLI / orchestrator feeds — keep separate from FC eval CSVs
+    # (bank.csv, payment_processor.csv, ground_truth.csv are owned by
+    # scripts/generate_fc_demo_data.py and must not be overwritten here).
     write_csv(DEMO / "quickbooks_invoices.csv", invoices, list(invoices[0].keys()))
     write_csv(DEMO / "bank_transactions.csv", bank_rows, list(bank_rows[0].keys()))
-    write_csv(DEMO / "payment_processor.csv", pp_rows, list(pp_rows[0].keys()))
+    write_csv(DEMO / "payment_processor_cli.csv", pp_rows, list(pp_rows[0].keys()))
     write_csv(
-        DEMO / "ground_truth.csv",
+        DEMO / "ground_truth_cli.csv",
         gt,
         ["payment_id", "expected_invoice_id", "expected_status", "notes"],
     )
 
     print(f"invoices={len(invoices)} payments={len(payments)} gt={len(gt)}")
     print(f"bank={len(bank_rows)} processor={len(pp_rows)}")
+    print("wrote CLI-only: payment_processor_cli.csv, ground_truth_cli.csv")
+    assert len(payments) >= 50, f"CLI demo must have 50+ payments, got {len(payments)}"
 
 
 if __name__ == "__main__":

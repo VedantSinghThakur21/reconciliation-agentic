@@ -14,7 +14,13 @@ Finance teams closing their books manually spend days matching bank payments aga
 
 ## Results
 
-**Run ID:** `FLOW-A4504F2472`
+Two different commands produce two different metrics. Do not conflate them.
+
+### Finance Controller eval (multi-source) — **92.0%**
+
+Produced by `python scripts/run_finance_flow.py` (not `run_pipeline.py`).
+
+**Run ID:** `FLOW-A4504F2472` (re-verified later as `FLOW-6E303761F2` with the same metrics)
 
 | Metric | Value |
 |---|---|
@@ -48,6 +54,24 @@ python scripts/generate_fc_demo_data.py
 python scripts/run_finance_flow.py
 ```
 
+### Classic StrictMatcher CLI — **35 / 40 (~87.5%)**
+
+Produced by `python scripts/run_pipeline.py` on the QuickBooks × bank demo CSVs.
+
+| Metric | Value |
+|---|---|
+| Auto-reconciled | **35** |
+| Pending review | 5 |
+| Total payment decisions | 40 |
+| Auto rate | **87.5%** (35/40) |
+
+```bash
+python scripts/run_pipeline.py \
+  --invoices data/demo/quickbooks_invoices.csv \
+  --payments data/demo/bank_transactions.csv
+```
+
+This path does **not** emit the Finance Controller `match_rate` / TP–TN table above.
 ---
 
 ## Architecture
@@ -155,7 +179,8 @@ cp .env.example .env
 # CREWAI_API_URL + CREWAI_BEARER_TOKEN (leftover enrichment).
 # Core StrictMatcher pipeline runs fully without these — enrichment fails open.
 
-# Classic CLI pipeline (CSV invoices × payments)
+# Classic CLI pipeline (StrictMatcher) → 35/40 auto-reconciled (~87.5%)
+# Does NOT produce the 92.0% Finance Controller match_rate.
 python scripts/run_pipeline.py \
   --invoices data/demo/quickbooks_invoices.csv \
   --payments data/demo/bank_transactions.csv
@@ -166,8 +191,9 @@ python scripts/run_pipeline.py \
   --payments data/demo/bank_transactions.csv \
   --use-crewai
 
-# Finance Controller eval batch (the 92.0% run above)
-python scripts/generate_fc_demo_data.py
+# Finance Controller multi-source eval → 92.0% match_rate (TP/FP/FN/TN table in Results)
+python scripts/generate_fc_demo_data.py   # FC-only CSVs: bank.csv, payment_processor.csv, ground_truth.csv
+python scripts/generate_demo_data.py      # CLI-only CSVs: quickbooks/bank_transactions/payment_processor_cli
 python scripts/run_finance_flow.py
 
 # API + UI

@@ -24,6 +24,7 @@ data/uploads/
 # Real bank statements / customer PDFs
 *.pdf
 !docs/**/*.pdf
+!data/synthetic/bank_statements/*.pdf
 
 # Frontend
 ui/node_modules/

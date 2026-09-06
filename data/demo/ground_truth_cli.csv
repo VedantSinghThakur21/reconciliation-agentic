@@ -1,0 +1,58 @@
+payment_id,expected_invoice_id,expected_status,notes
+PP-3000,INV-1001,reconciled,Exact reference
+TXN-2001,INV-1002,reconciled,Exact reference
+TXN-2002,INV-1003,reconciled,Exact reference
+PP-3003,INV-1004,reconciled,Exact reference
+TXN-2004,INV-1005,reconciled,Exact reference
+TXN-2005,INV-1006,reconciled,Exact reference
+PP-3006,INV-1007,reconciled,Exact reference
+TXN-2007,INV-1008,reconciled,Exact reference
+TXN-2008,INV-1009,reconciled,Exact reference
+PP-3009,INV-1010,reconciled,Exact reference
+TXN-2010,INV-1011,reconciled,Exact reference
+TXN-2011,INV-1012,reconciled,Exact reference
+PP-3012,INV-1013,reconciled,Exact reference
+TXN-2013,INV-1014,reconciled,Exact reference
+TXN-2014,INV-1015,reconciled,Exact reference
+PP-3015,INV-1016,reconciled,Exact reference
+TXN-2016,INV-1017,reconciled,Exact reference
+TXN-2017,INV-1018,reconciled,Exact reference
+PP-3018,INV-1019,reconciled,Exact reference
+TXN-2019,INV-1020,reconciled,Exact reference
+TXN-2020,INV-1021,reconciled,Exact reference
+PP-3021,INV-1022,reconciled,Exact reference
+TXN-2022,INV-1023,reconciled,Exact reference
+TXN-2023,INV-1024,reconciled,Exact reference
+PP-3024,INV-1025,reconciled,Exact reference
+TXN-2025,INV-1026,reconciled,Exact reference
+TXN-2026,INV-1027,reconciled,Exact reference
+PP-3027,INV-1028,reconciled,Exact reference
+TXN-2028,INV-1029,reconciled,Exact reference
+TXN-2029,INV-1030,reconciled,Exact reference
+PP-3030,INV-1031,reconciled,Exact reference
+TXN-2031,INV-1032,reconciled,Exact reference
+TXN-2032,INV-1033,reconciled,Exact reference
+PP-3033,INV-1034,reconciled,Exact reference
+TXN-2034,INV-1035,reconciled,Exact reference
+TXN-2035,INV-1036,reconciled,Exact reference
+PP-3036,INV-1037,reconciled,Exact reference
+TXN-2037,INV-1038,reconciled,Exact reference
+TXN-2038,INV-1039,reconciled,Exact reference
+PP-3039,INV-1040,reconciled,Exact reference
+TXN-2040,INV-1041,reconciled,Exact reference
+TXN-2041,INV-1042,reconciled,Exact reference
+TXN-2100,INV-1043,reconciled,Fuzzy name + amount
+TXN-2101,INV-1044,reconciled,Fuzzy name + amount
+TXN-2102,INV-1045,reconciled,Fuzzy name + amount
+TXN-2103,INV-1046,reconciled,Fuzzy name + amount
+TXN-2104,INV-1047,reconciled,Fuzzy name + amount
+TXN-2105,INV-1048,reconciled,Fuzzy name + amount
+PP-3100,INV-1049,pending_review,Partial settlement
+PP-3101,INV-1050,pending_review,Partial settlement
+PP-3102,INV-1051,pending_review,Partial settlement
+TXN-2200,,pending_review,No matching invoice
+TXN-2201,,pending_review,No matching invoice
+TXN-2202,,pending_review,No matching invoice
+TXN-2203,,pending_review,No matching invoice
+TXN-2300,INV-1001,pending_review,Duplicate / already allocated
+TXN-2301,INV-1002,pending_review,Duplicate / already allocated

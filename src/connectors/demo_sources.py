@@ -28,7 +28,13 @@ def load_bank_payments(path: Path | None = None) -> list[dict[str, Any]]:
 
 
 def load_processor_payments(path: Path | None = None) -> list[dict[str, Any]]:
-    p = path or (DEMO_DIR / "payment_processor.csv")
+    # CLI orchestrator batch — separate from FC eval `payment_processor.csv`
+    p = path or (DEMO_DIR / "payment_processor_cli.csv")
+    if not p.exists() and path is None:
+        # Legacy fallback for older checkouts
+        legacy = DEMO_DIR / "payment_processor.csv"
+        if legacy.exists():
+            p = legacy
     payments = parse_payment_csv(p)
     for pay in payments:
         pay["source"] = "payment_processor"

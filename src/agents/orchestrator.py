@@ -264,7 +264,9 @@ class FinanceControllerOrchestrator:
             self.db.save_results(run_id, decisions)
 
             stage("evaluating", "running")
-            gt_path = DEMO_DIR / "ground_truth.csv"
+            gt_path = DEMO_DIR / "ground_truth_cli.csv"
+            if not gt_path.exists():
+                gt_path = DEMO_DIR / "ground_truth.csv"
             gt = load_ground_truth(gt_path) if gt_path.exists() else []
             eval_metrics = evaluate_against_ground_truth(decisions, gt) if gt else {
                 "accuracy": None, "precision": None, "recall": None, "f1": None, "details": [],
